@@ -55,6 +55,36 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def scan(target_ip: str, username: str, password: str) -> dict[str, set[int] | int | str | list[str]]:
+    """
+    Scans the specified honeypot and returns the results.
+
+    Args:
+        target_ip (str): The IP address of the honeypot to analyze.
+        username (str): The username to connect to the honeypot.
+        password (str): The password to connect to the honeypot.
+
+    Returns:
+        dict: A dictionary containing the scan results.
+    """
+    detector = HoneypotDetector(target_ip)
+    honeyscanner = detector.detect_honeypot(username, password)
+    if not honeyscanner:
+        return {"error": "Honeypot not detected or unsupported."}
+
+    try:
+        honeyscanner.run_all_attacks()
+    except Exception as e:
+        print(f"An error occurred during the attacks: {e}")
+        return {"error": str(e)}
+
+    try:
+        report = honeyscanner.generate_evaluation_report()
+        return report
+    except Exception as e:
+        print(f"An error occurred during report generation: {e}")
+        return {"error": str(e)}
+
 def main() -> None:
     """
     Main entry point of the program.
