@@ -74,7 +74,7 @@ def main() -> None:
         return
 
     try:
-        honeyscanner.generate_evaluation_report()
+        return honeyscanner.generate_evaluation_report()
     except Exception:
         issue: str = traceback.format_exc()
         print(f"An error occurred during report generation: {issue}")

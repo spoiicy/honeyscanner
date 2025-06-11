@@ -23,9 +23,9 @@ class AttackOrchestrator:
             "StaticAnalyzer",
             "ContainerSecurityScanner"
         ]
-        self.analyze_vulns_report: str = ""
-        self.static_analysis_report: str = ""
-        self.container_sec_report: str = ""
+        self.analyze_vulns_report: dict
+        self.static_analysis_report: dict = {}
+        self.container_sec_report: dict = {}
         self.recs: dict[str, str] = {"vuln": "", "static": "", "container": ""}
 
     def run_attacks(self) -> None:
@@ -70,7 +70,7 @@ class AttackOrchestrator:
 
         print("Finished all passive attacks successfully!")
 
-    def generate_report(self) -> tuple[str, dict[str, str]]:
+    def generate_report(self) -> tuple[dict, dict[str, str]]:
         """
         Formats strings to create a report of the passive attacks
         on the Honeypot.
@@ -78,19 +78,14 @@ class AttackOrchestrator:
         Returns:
             str: Generated report string.
         """
-        report: str = "Honeypot Passive Attack Report\n"
-        report += "==============================\n\n"
-        report += f"Target: {self.honeypot.ip}\n\n"
 
+        report = {
+            "analysis_type": "Passive",
+            "target": self.honeypot.ip,
+        }
         for attack in self.attacks:
-            report += f"{attack}:\n"
-            if attack == "VulnerableLibrariesAnalyzer":
-                report += self.analyze_vulns_report
-                report += "\n\n"
-            elif attack == "StaticAnalyzer":
-                report += self.static_analysis_report
-                report += "\n\n"
-            elif attack == "ContainerSecurityScanner":
-                report += self.container_sec_report
-                report += "\n\n"
+            report[attack] = self.analyze_vulns_report if attack == "VulnerableLibrariesAnalyzer" else \
+            self.static_analysis_report if attack == "StaticAnalyzer" else \
+            self.container_sec_report
+
         return (report, self.recs)

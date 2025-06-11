@@ -27,14 +27,14 @@ class VulnerableLibrariesAnalyzer:
         self.honeypot_name: str = honeypot_name
         self.owner: str = owner
         self.repo: Repository = self.get_repo()
-        parent_path: Path = Path(__file__).resolve().parent
+        parent_path: Path = Path('/tmp').resolve()
         self.insecure_full_path: Path = (
             parent_path / "vuln_database" / "insecure_full.json"
         )
-        self.analysis_results_path: Path = parent_path / "analysis_results"
+        self.analysis_results_path: Path = parent_path / "vuln_analysis_results"
         self.requirements_files_path: Path = parent_path / "requirements_files"
         self.all_cves_path: Path = (
-            parent_path.parent / "results" / "all_cves.txt"
+            parent_path /"passive_attacks" / "results" / "all_cves.txt"
         )
         self.download_insecure_full_json()
         self.vuln_data_cache = defaultdict(dict)
@@ -399,7 +399,7 @@ class VulnerableLibrariesAnalyzer:
     def generate_summary(
             self,
             vulnerabilities: VulnLibs
-            ) -> tuple[str, str]:
+            ) -> tuple[dict, str]:
         """
         Generate a summary of the found vulnerabilities as a string.
 
@@ -408,23 +408,21 @@ class VulnerableLibrariesAnalyzer:
                                         and their associated vulnerabilities.
         """
         actions_text: str = ""
-        summary_text: str = "\nVulnerability Analysis Summary:\n"
+        analysis_summary: dict[str, str | list[dict]] = {}
+        analysis_summary["type"] = "Library Vulnerability Analysis"
         for name, vuln_list in vulnerabilities.items():
-            summary_text += f"{name}\n"
             actions_text += f"{name}, "
+            details = []
             for vuln in vuln_list:
-                severity_color: str
-                severity_color: str
-                if vuln.cvss_score:
-                    if vuln.cvss_score < 4.0:
-                        severity_color = "Green"
-                    elif 4.0 <= vuln.cvss_score < 7.0:
-                        severity_color = "Yellow"
-                    else:
-                        severity_color = "Red"
-                else:
-                    severity_color = "No CVSS Score"
-                summary_text += f"  - {severity_color} {vuln.vulnerability_id} - {vuln.affected_versions} - {vuln.cve} - CVSS: {vuln.cvss_score}\n"
-            summary_text += "\n"
+                details.append({
+                    "vulnerability_id": vuln.vulnerability_id,
+                    "affected_versions": vuln.affected_versions,
+                    "cve": vuln.cve,
+                    "cvss_score": vuln.cvss_score
+                })
+            analysis_summary[name] = details
+                
+        
+                
         actions_text = f"All of these modules need to be updated:\n{actions_text[0:-2]}"
-        return (summary_text, actions_text)
+        return (analysis_summary, actions_text)

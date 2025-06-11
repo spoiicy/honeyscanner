@@ -62,6 +62,21 @@ class BaseAttack:
         """
         for port in self.honeypot.ports:
             try:
+                print(f"Connecting to IP: {self.honeypot.ip}, Port: {port}")
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(2)
+                s.connect((self.honeypot.ip, port))
+                s.sendall(b"\n")  # Send a newline to trigger a response
+                try:
+                    response = s.recv(1024).decode()
+                except Exception as e:
+                    print(f"Error during recv/decode: {e}")
+                    s.close()
+                    continue
+
+                if not response.startswith("SSH"):
+                    print(f"Port {port} is not running an SSH service")
+                    continue  # Skip this port if it's not an SSH service
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect((self.honeypot.ip, port))
                 transport = paramiko.Transport(s)

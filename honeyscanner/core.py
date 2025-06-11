@@ -4,6 +4,7 @@ from passive_attacks import AttackOrchestrator as PassiveAttackOrchestrator
 from report_generator import ReportGenerator
 
 from typing import Type, TypeAlias
+import json
 
 HoneypotMap: TypeAlias = dict[str, Type[BaseHoneypot]]
 
@@ -41,8 +42,8 @@ class Honeyscanner:
             ActiveAttackOrchestrator(self.honeypot)
         )
         self.recommendations: dict[str, str]
-        self.passive_attack_results: str = ""
-        self.active_attack_results: tuple[str, int, int]
+        self.passive_attack_results: dict
+        self.active_attack_results: dict[str, str | int | list]
         self.report_generator: ReportGenerator = ReportGenerator(self.honeypot)
 
     def create_honeypot(self,
@@ -97,15 +98,14 @@ class Honeyscanner:
         )
         # Active attacks
         self.active_attack_orchestrator.run_attacks()
-        self.active_attack_results: tuple[str, int, int] = (
-            self.active_attack_orchestrator.generate_report()
-        )
+        self.active_attack_results = self.active_attack_orchestrator.generate_report()
+        
 
-    def generate_evaluation_report(self) -> None:
+    def generate_evaluation_report(self) -> dict:
         """
         Generate the evaluation report for the Honeypot off of
         the attack results.
         """
-        self.report_generator.generate(list(self.recommendations.values()),
+        return self.report_generator.generate_dict(list(self.recommendations.values()),
                                        self.passive_attack_results,
                                        self.active_attack_results)

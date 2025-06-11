@@ -30,9 +30,9 @@ class StaticAnalyzer:
         # Check for Conpot's condition
         if honeypot_name == "conpot" and honeypot_version > "0.2.2":
             self.honeypot_version = f"Release_{honeypot_version}"
-        self.parent_path: Path = Path(__file__).resolve().parent
-        self.output_folder: Path = self.parent_path / "analysis_results"
-        passive_root: Path = self.parent_path.parent
+        self.parent_path: Path = Path('/tmp').resolve()
+        self.output_folder: Path = self.parent_path / "static_analysis_results"
+        passive_root: Path = self.parent_path / "passive_attacks"
         self.all_cves_path: Path = passive_root / "results" / "all_cves.txt"
         self.recommendation: str = ""
 
@@ -221,7 +221,7 @@ class StaticAnalyzer:
             for cve_id in cve_ids:
                 file.write(f"{cve_id}\n")
 
-    def run(self) -> tuple[str, str]:
+    def run(self) -> tuple[dict, str]:
         """
         Run the static analysis for each honeypot version, save the results,
         and print the summary.
@@ -246,7 +246,7 @@ class StaticAnalyzer:
 
         return self.generate_summary(self.honeypot_version)
 
-    def generate_summary(self, version: str) -> tuple[str, str]:
+    def generate_summary(self, version: str) -> tuple[dict, str]:
         """
         Generate the summary of the analysis results for the specified version
         as a string.
@@ -268,19 +268,21 @@ class StaticAnalyzer:
         results: list[dict] = data[version]["results"]
         high_count: int = summary["high_severity"]
         medium_count: int = summary["medium_severity"]
-        medium_issues: str = ""
-        high_issues: str = ""
+        medium_issues = []
+        high_issues = []
         for result in results:
             severity: str = result.get("issue_severity", [])
             if severity == "HIGH":
-                high_issues += f"• In file {result['filename'].split('static_analyzer/')[1]} at line {result['line_number']}:\n\t{result['issue_text']}\n"
+                high_issues.append(f"In file {result['filename'].split('tmp/')[1]} at line {result['line_number']}: {result['issue_text']}")
             elif result["issue_severity"] == "MEDIUM":
-                medium_issues += f"• In file {result['filename'].split('static_analyzer/')[1]} at line {result['line_number']}:\n\t{result['issue_text']}\n"
-
+                medium_issues.append(f"In file {result['filename'].split('tmp/')[1]} at line {result['line_number']}: {result['issue_text']}")
+                
         # summary_text = f"Version: {version}\n"
-        summary_text: str = f"High Severity: {high_count}\n"
-        summary_text += high_issues
-        summary_text += f"Medium Severity: {medium_count}\n"
-        summary_text += medium_issues
+        summary_text = {
+            "high_issues_count": high_count,
+            "high_issues_details": high_issues,
+            "medium_issues_count": medium_count,
+            "medium_issues_details": medium_issues
+        }
 
         return (summary_text, self.actionable_rec)

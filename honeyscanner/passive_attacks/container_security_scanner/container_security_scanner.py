@@ -27,10 +27,10 @@ class ContainerSecurityScanner:
         self.honeypot_name = honeypot_name
         self.github_repo_url = f"https://github.com/{honeypot_owner}/{honeypot_name}"
         self.local_repo_path = None
-        self.base_path = Path(__file__).resolve().parent
+        self.base_path = Path('tmp').resolve()
         self.output_folder = self.base_path / "analysis_results"
-        self.all_cves_path = self.base_path.parent / "results" / "all_cves.txt"
-        self.trivy_path = self.base_path.parent.parent / "bin" / "trivy"
+        self.all_cves_path = self.base_path /"passive_attacks" / "results" / "all_cves.txt"
+        self.trivy_path = self.base_path / "bin" / "trivy"
         self.report_name = self.output_folder / f"trivy_scan_results_{self.honeypot_name}.json"
         self.results = None
         self.recommendations: str = ""
@@ -171,7 +171,7 @@ class ContainerSecurityScanner:
         if self.check_trivy_installed():
             rmtree(Path(__file__).resolve().parent.parent.parent / "bin")
 
-    def scan_repository(self) -> tuple[str, str]:
+    def scan_repository(self) -> tuple[dict, str]:
         """
         Scan the repository for vulnerabilities and secrets.
 
@@ -232,26 +232,34 @@ class ContainerSecurityScanner:
                 self.recommendations = "Trivy found vulnerabilities in the source code repository. Check the TrivyScanner section for more info and inform the developer(s) of the security issue."
             return (self.generate_summary(results), self.recommendations)
 
-    def generate_summary(self, results: dict) -> str:
+    def generate_summary(self, results: dict) -> dict:
         """
         Generate a summary of the scan results as a string.
 
         Args:
             results (dict): The scan results.
         Returns:
-            str: The summary of the scan results.
+            dict: The summary of the scan results.
         """
-        summary_text = "Scan Summary\n"
+
+        vulnerabilities_list = []
+        secrets_list = []
+
         for target in results.get('Results', []):
-            summary_text += self._generate_target_summary(target,
-                                                          'Vulnerabilities')
-            summary_text += self._generate_target_summary(target,
-                                                          'Secrets')
+            vulnerabilities_list.append(self._generate_target_summary(target,
+                                                                     'Vulnerabilities'))
+            secrets_list.append(self._generate_target_summary(target,
+                                                              'Secrets'))
+
+        summary_text = {
+            "vulnerabilities": vulnerabilities_list,
+            "secrets": secrets_list
+        }
 
         return summary_text
 
     @staticmethod
-    def _generate_target_summary(target: dict, key: str) -> str:
+    def _generate_target_summary(target: dict, key: str) -> dict:
         """
         Generate a summary of either vulnerabilities or secrets for a target
         as a string.
@@ -260,11 +268,14 @@ class ContainerSecurityScanner:
             target (dict): The target to generate the summary for.
             key (str): The key to generate the summary for.
         Returns:
-            str: The summary of the target.
+            dict: The summary of the target.
         """
-        summary_text = f"\n{key} in {target['Target']}:\n"
+
+        details_dict = {
+             "target": target['Target'],
+        }
         for severity in SEVERITY_LEVELS.split(','):
             count = sum(1 for v in target.get(key, []) if v['Severity'] == severity)
-            summary_text += f"{severity}: {count}\n"
+            details_dict[severity] = count
 
-        return summary_text
+        return details_dict
