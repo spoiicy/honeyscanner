@@ -1,4 +1,3 @@
-import argparse
 import re
 import traceback
 
@@ -22,47 +21,20 @@ def sanitize_string(s: str) -> str:
     return s
 
 
-def parse_arguments() -> argparse.Namespace:
-    """
-    Creates an argument parser and parses the command-line arguments.
-
-    Returns:
-        argparse.Namespace: Parsed arguments object.
-    """
-    parser = argparse.ArgumentParser(
-        description="Honeyscanner: A vulnerability analyzer for honeypots"
-    )
-    parser.add_argument(
-        "--target-ip",
-        type=sanitize_string,
-        required=True,
-        help="The IP address of the honeypot to analyze",
-    )
-    parser.add_argument(
-        "--username",
-        type=str,
-        required=False,
-        default="",
-        help="The username to connect to the honeypot",
-    )
-    parser.add_argument(
-        "--password",
-        type=str,
-        required=False,
-        default="",
-        help="The password to connect to the honeypot",
-    )
-    return parser.parse_args()
-
-
-def main(target_ip: str, username: str, password: str) -> dict | None:
+def scan(target_ip: str, username: str, password: str) -> dict | None:
     """
     Main entry point of the program.
+
+    Args:
+        target_ip (str): The IP address of the honeypot to analyze.
+        username (str): The username to connect to the honeypot. Optional, defaults to an empty string.
+        password (str): The password to connect to the honeypot. Optional, defaults to an empty string.
+    Returns:
+        dict | None: A dictionary containing the evaluation report if successful,
+                      None otherwise.
     """
-    # args: argparse.Namespace = parse_arguments()
+
     print(ascii_art_honeyscanner())
-    # detector = HoneypotDetector(args.target_ip)
-    # honeyscanner = detector.detect_honeypot(args.username, args.password)
     detector = HoneypotDetector(target_ip)
     honeyscanner = detector.detect_honeypot(username, password)
     if not honeyscanner:
@@ -84,4 +56,4 @@ def main(target_ip: str, username: str, password: str) -> dict | None:
 
 
 if __name__ == "__main__":
-    main("localhost", "", "")
+    scan("localhost", "", "")
