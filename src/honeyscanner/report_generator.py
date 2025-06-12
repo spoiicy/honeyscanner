@@ -1,5 +1,5 @@
 from datetime import datetime
-from honeypots import BaseHoneypot
+from honeyscanner.honeypots import BaseHoneypot
 from jinja2 import Environment, FileSystemLoader, Template
 from pathlib import Path
 from typing import TypeAlias
@@ -20,7 +20,7 @@ class ReportGenerator:
                                      the report.
         """
         self.honeypot = honeypot
-        self.parent_path = Path('/tmp').resolve()
+        self.parent_path = Path("/tmp").resolve()
         self.report_path: Path = self.parent_path / "reports"
         env = Environment(loader=FileSystemLoader(self.report_path))
         # self.template: Template = env.get_template("master.jinja")

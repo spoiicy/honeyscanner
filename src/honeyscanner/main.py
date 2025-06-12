@@ -2,8 +2,8 @@ import argparse
 import re
 import traceback
 
-from art import ascii_art_honeyscanner
-from passive_attacks import HoneypotDetector
+from honeyscanner.art import ascii_art_honeyscanner
+from honeyscanner.passive_attacks import HoneypotDetector
 
 
 def sanitize_string(s: str) -> str:
@@ -55,14 +55,16 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
+def main(target_ip: str, username: str, password: str) -> dict | None:
     """
     Main entry point of the program.
     """
-    args: argparse.Namespace = parse_arguments()
+    # args: argparse.Namespace = parse_arguments()
     print(ascii_art_honeyscanner())
-    detector = HoneypotDetector(args.target_ip)
-    honeyscanner = detector.detect_honeypot(args.username, args.password)
+    # detector = HoneypotDetector(args.target_ip)
+    # honeyscanner = detector.detect_honeypot(args.username, args.password)
+    detector = HoneypotDetector(target_ip)
+    honeyscanner = detector.detect_honeypot(username, password)
     if not honeyscanner:
         return
 
@@ -82,4 +84,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main("localhost", "", "")

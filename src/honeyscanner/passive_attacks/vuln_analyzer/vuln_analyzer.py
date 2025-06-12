@@ -27,7 +27,7 @@ class VulnerableLibrariesAnalyzer:
         self.honeypot_name: str = honeypot_name
         self.owner: str = owner
         self.repo: Repository = self.get_repo()
-        parent_path: Path = Path('/tmp').resolve()
+        parent_path: Path = Path("/tmp").resolve()
         self.insecure_full_path: Path = (
             parent_path / "vuln_database" / "insecure_full.json"
         )

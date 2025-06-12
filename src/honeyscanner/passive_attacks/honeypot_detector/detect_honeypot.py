@@ -4,7 +4,7 @@ import ssl
 import yaml
 
 from colorama import Fore
-from core import Honeyscanner
+from honeyscanner.core import Honeyscanner
 from pathlib import Path
 from typing import TypeAlias
 from .sshconnect import CowrieInteract

@@ -1,6 +1,7 @@
 import json
 import requests
 import subprocess
+import os
 
 from colorama import Fore, Style, init
 from pathlib import Path
@@ -27,13 +28,16 @@ class ContainerSecurityScanner:
         self.honeypot_name = honeypot_name
         self.github_repo_url = f"https://github.com/{honeypot_owner}/{honeypot_name}"
         self.local_repo_path = None
-        self.base_path = Path('tmp').resolve()
+        self.base_path = Path("/tmp").resolve()
         self.output_folder = self.base_path / "analysis_results"
         self.all_cves_path = self.base_path /"passive_attacks" / "results" / "all_cves.txt"
-        self.trivy_path = self.base_path / "bin" / "trivy"
+        self.trivy_path = Path().cwd() / "bin" / "trivy"
         self.report_name = self.output_folder / f"trivy_scan_results_{self.honeypot_name}.json"
         self.results = None
         self.recommendations: str = ""
+
+        env = os.environ.copy()
+        env['BINDIR'] = str(self.trivy_path)
 
     def check_trivy_installed(self) -> bool:
         """
@@ -169,7 +173,7 @@ class ContainerSecurityScanner:
             rmtree(self.local_repo_path)
 
         if self.check_trivy_installed():
-            rmtree(Path(__file__).resolve().parent.parent.parent / "bin")
+            rmtree(str (self.trivy_path.parent))
 
     def scan_repository(self) -> tuple[dict, str]:
         """

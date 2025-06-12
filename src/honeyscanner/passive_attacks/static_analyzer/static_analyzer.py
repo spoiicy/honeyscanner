@@ -30,7 +30,7 @@ class StaticAnalyzer:
         # Check for Conpot's condition
         if honeypot_name == "conpot" and honeypot_version > "0.2.2":
             self.honeypot_version = f"Release_{honeypot_version}"
-        self.parent_path: Path = Path('/tmp').resolve()
+        self.parent_path: Path = Path("/tmp").resolve()
         self.output_folder: Path = self.parent_path / "static_analysis_results"
         passive_root: Path = self.parent_path / "passive_attacks"
         self.all_cves_path: Path = passive_root / "results" / "all_cves.txt"
